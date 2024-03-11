@@ -1,0 +1,25 @@
+import { Modal } from './Modal/Modal.tsx';
+import { Drawer } from './Drawer/Drawer.tsx';
+import { useState } from 'react';
+import { Tooltip } from './Tooltip/Tooltip.tsx';
+import { Popover } from './Popover/Popover.tsx';
+
+export const UiContainer = () => {
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  return (
+    <div>
+      <button onClick={() => setIsModalOpen((prev) => !prev)}>open modal</button>
+      <button onClick={() => setIsDrawerOpen((prev) => !prev)}>open drawer</button>
+
+      <Tooltip text="Текст для тултипа">{'Наведи'}</Tooltip>
+
+      <Popover content={<div>Контент!</div>}>
+        <button>Click</button>
+      </Popover>
+
+      <Modal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
+      <Drawer isOpen={isDrawerOpen} setIsOpen={setIsDrawerOpen} />
+    </div>
+  );
+};
