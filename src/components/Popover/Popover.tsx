@@ -1,9 +1,10 @@
 import styles from './Popover.module.scss';
-import { createPortal } from 'react-dom';
 import { Transition, TransitionStatus } from 'react-transition-group';
 import { CSSProperties, FC, useRef, useState } from 'react';
 import * as React from 'react';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside.ts';
+import { Portal } from '../Portal/Portal.tsx';
+import { useIsMounted } from '../../hooks/useIsMount.ts';
 
 const duration = 300;
 
@@ -13,38 +14,43 @@ const defaultStyle = {
 };
 
 const transitionStyles = {
-  entering: { opacity: 0.3 },
+  entering: { opacity: 0 },
   entered: { opacity: 1 },
   exiting: { opacity: 0 },
   exited: { opacity: 0 },
 } as Record<TransitionStatus, CSSProperties>;
 
 interface Props {
-  content: React.ReactNode;
+  content: React.ReactElement;
   children: React.ReactNode;
 }
 
-export const Popover: FC<Props> = ({ content, children }) => {
-  const [showPopover, setShowPopover] = useState(false);
+interface Position {
+  x: number;
+  y: number;
+}
 
-  const nodeRef = useRef();
-  const positionRef = useRef<{ top: number; left: number }>({ top: 0, left: 0 });
+export const Popover: FC<Props> = ({ content, children }) => {
+  const [position, setPosition] = useState<Position | null>(null);
+
   const popperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const { isMounted } = useIsMounted(!!position);
+
   const onClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    if (popperRef.current?.contains(e.target as HTMLElement)) {
+    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = e.currentTarget;
+
+    if (position) {
+      setPosition(null);
+
       return;
     }
 
-    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = e.currentTarget;
-
-    positionRef.current = {
-      top: offsetTop + offsetHeight,
-      left: offsetLeft + offsetWidth,
-    };
-
-    setShowPopover((prev) => !prev);
+    setPosition({
+      y: offsetTop + offsetHeight,
+      x: offsetLeft + offsetWidth,
+    });
   };
 
   useOnClickOutside(popperRef, (e: Event) => {
@@ -52,40 +58,38 @@ export const Popover: FC<Props> = ({ content, children }) => {
       return;
     }
 
-    setShowPopover(false);
+    setPosition(null);
   });
 
   return (
-    <span ref={containerRef} className={styles.container} onClick={onClick}>
-      {children}
+    <>
+      <span ref={containerRef} className={styles.container} onClick={onClick}>
+        {children}
+      </span>
       <Transition
-        nodeRef={nodeRef}
-        in={showPopover}
+        nodeRef={popperRef}
+        in={isMounted}
         timeout={duration}
         mountOnEnter
         unmountOnExit
       >
         {(state) => (
           <>
-            {showPopover &&
-              createPortal(
-                <div
-                  ref={popperRef}
-                  style={{
-                    ...defaultStyle,
-                    ...transitionStyles[state],
-                    top: `${positionRef.current?.top}px`,
-                    left: `${positionRef.current?.left}px`,
-                  }}
-                  className={styles.popover}
-                >
-                  {content}
-                </div>,
-                document.getElementById('portal-container') as HTMLElement,
-              )}
+            <Portal>
+              {React.cloneElement(content, {
+                ref: popperRef,
+                style: {
+                  ...defaultStyle,
+                  ...transitionStyles[state],
+                  top: `${position?.y}px`,
+                  left: `${position?.x}px`,
+                },
+                className: styles.popover,
+              })}
+            </Portal>
           </>
         )}
       </Transition>
-    </span>
+    </>
   );
 };

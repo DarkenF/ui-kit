@@ -1,8 +1,9 @@
 import styles from './Tooltip.module.scss';
-import { createPortal } from 'react-dom';
 import { Transition, TransitionStatus } from 'react-transition-group';
 import { CSSProperties, FC, useRef, useState } from 'react';
 import * as React from 'react';
+import { Portal } from '../Portal/Portal.tsx';
+import { useIsMounted } from '../../hooks/useIsMount.ts';
 
 const duration = 300;
 
@@ -12,7 +13,7 @@ const defaultStyle = {
 };
 
 const transitionStyles = {
-  entering: { opacity: 0.3 },
+  entering: { opacity: 0 },
   entered: { opacity: 1 },
   exiting: { opacity: 0 },
   exited: { opacity: 0 },
@@ -23,25 +24,44 @@ interface Props {
   children: React.ReactNode;
 }
 
-export const Tooltip: FC<Props> = ({ text, children }) => {
-  const [showTooltip, setShowTooltip] = useState(false);
+interface Position {
+  x: number;
+  y: number;
+}
 
-  const nodeRef = useRef();
-  const positionRef = useRef<{ top: number; left: number }>({ top: 0, left: 0 });
-  const onMouseEnterHandler = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-    positionRef.current = {
-      top: e.clientY,
-      left: e.clientX,
-    };
-    setShowTooltip(true);
+const USER_EVENT_TIMEOUT = 75;
+
+export const Tooltip: FC<Props> = ({ text, children }) => {
+  const [position, setPosition] = useState<Position | null>(null);
+
+  const containerRef = useRef<HTMLSpanElement | null>(null);
+  const timeoutRef = useRef<number>();
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+
+  const { isMounted } = useIsMounted(!!position);
+
+  const onMouseEnterHandler = () => {
+    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = containerRef.current!;
+
+    timeoutRef.current = setTimeout(() => {
+      setPosition({
+        y: offsetTop + offsetHeight,
+        x: offsetLeft + offsetWidth,
+      });
+    }, USER_EVENT_TIMEOUT);
   };
 
   const onMouseLeaveHandler = () => {
-    setShowTooltip(false);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    setPosition(null);
   };
 
   return (
     <span
+      ref={containerRef}
       className={styles.container}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -49,28 +69,27 @@ export const Tooltip: FC<Props> = ({ text, children }) => {
       {children}
       <Transition
         nodeRef={nodeRef}
-        in={showTooltip}
+        in={isMounted}
         timeout={duration}
         mountOnEnter
         unmountOnExit
       >
         {(state) => (
           <>
-            {showTooltip &&
-              createPortal(
-                <div
-                  style={{
-                    ...defaultStyle,
-                    ...transitionStyles[state],
-                    top: `${positionRef.current.top}px`,
-                    left: `${positionRef.current.left}px`,
-                  }}
-                  className={styles.tooltip}
-                >
-                  {text}
-                </div>,
-                document.getElementById('portal-container') as HTMLElement,
-              )}
+            <Portal>
+              <div
+                ref={nodeRef}
+                style={{
+                  ...defaultStyle,
+                  ...transitionStyles[state],
+                  top: `${position?.y}px`,
+                  left: `${position?.x}px`,
+                }}
+                className={styles.tooltip}
+              >
+                {text}
+              </div>
+            </Portal>
           </>
         )}
       </Transition>

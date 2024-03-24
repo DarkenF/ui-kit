@@ -1,0 +1,42 @@
+.contentEnter {
+  opacity: 0;
+}
+
+.contentEnterActive {
+  transition: opacity 100ms ease-out 200ms;
+  opacity: 1;
+}
+
+.contentExit {
+  opacity: 1;
+}
+
+.contentExitActive {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  width: 100vw;
+  height: 100vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px;
+
+  width: 450px;
+  height: 300px;
+  background: white;
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+}

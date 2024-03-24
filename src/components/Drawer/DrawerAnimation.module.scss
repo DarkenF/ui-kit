@@ -1,0 +1,84 @@
+.contentEnter {
+  &Right {
+    transform: translateX(400px);
+  }
+  &Left {
+    transform: translateX(-400px);
+  }
+}
+
+.contentEnterActive {
+  transition: transform 300ms ease-out;
+  transform: translateX(0px);
+}
+
+.contentExit {
+  transition: transform 300ms ease-out;
+  transform: translateX(0px);
+}
+
+.contentExitActive {
+  &Right {
+    transition: transform 300ms ease-out;
+    transform: translateX(400px);
+  }
+  &Left {
+    transition: transform 300ms ease-out;
+    transform: translateX(-400px);
+  }
+}
+
+.overlayEnter {
+  opacity: 0;
+}
+
+.overlayEnterActive {
+  transition: opacity 300ms ease-out;
+  opacity: 1;
+}
+
+.overlayExit {
+  opacity: 1;
+}
+
+.overlayExitActive {
+  opacity: 0;
+  transition: opacity 300ms ease-out;
+}
+
+.overlay {
+  background-color: rgba(0, 0, 0, 0.2);
+  width: 100vw;
+  height: 100vh;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  padding: 16px;
+
+  width: 400px;
+  height: 100vh;
+
+  background: white;
+  color: white;
+
+  box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+
+  &.left {
+    left: 0;
+    border-bottom-right-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+  &.right {
+    right: 0;
+    border-bottom-left-radius: 16px;
+    border-top-left-radius: 16px;
+  }
+}

@@ -17,9 +17,14 @@ export const UiContainer = () => {
       <Popover content={<div>Контент!</div>}>
         <button>Click</button>
       </Popover>
-
-      <Modal isOpen={isModalOpen} setIsOpen={setIsModalOpen} />
-      <Drawer isOpen={isDrawerOpen} setIsOpen={setIsDrawerOpen} />
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <Drawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        position="left"
+      >
+        <button onClick={() => setIsModalOpen((prev) => !prev)}>open modal</button>
+      </Drawer>
     </div>
   );
 };
