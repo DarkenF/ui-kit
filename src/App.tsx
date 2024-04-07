@@ -1,11 +1,14 @@
 import './App.css';
 import { UiContainer } from './components/UIContainer.tsx';
+import { PortalsListenersProvider } from './context/portalsContext.tsx';
 function App() {
   return (
-    <>
-      <UiContainer />
-      <div id="portal-container"></div>
-    </>
+    <PortalsListenersProvider>
+      <>
+        <UiContainer />
+        <div id="portal-container"></div>
+      </>
+    </PortalsListenersProvider>
   );
 }
 

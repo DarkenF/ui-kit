@@ -12,10 +12,12 @@ export const UiContainer = () => {
       <button onClick={() => setIsModalOpen((prev) => !prev)}>open modal</button>
       <button onClick={() => setIsDrawerOpen((prev) => !prev)}>open drawer</button>
 
-      <Tooltip text="Текст для тултипа">{'Наведи'}</Tooltip>
+      <Tooltip text="Текст для тултипа">
+        {(props) => <span {...props}>Наведи</span>}
+      </Tooltip>
 
       <Popover content={<div>Контент!</div>}>
-        <button>Click</button>
+        {(props) => <button {...props}>Click</button>}
       </Popover>
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       <Drawer

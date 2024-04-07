@@ -1,9 +1,16 @@
 import styles from './Tooltip.module.scss';
+// eslint-disable-next-line import/named
 import { Transition, TransitionStatus } from 'react-transition-group';
-import { CSSProperties, FC, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  FC,
+  MouseEvent,
+  MouseEventHandler,
+  useRef,
+  useState,
+} from 'react';
 import * as React from 'react';
 import { Portal } from '../Portal/Portal.tsx';
-import { useIsMounted } from '../../hooks/useIsMount.ts';
 
 const duration = 300;
 
@@ -19,9 +26,14 @@ const transitionStyles = {
   exited: { opacity: 0 },
 } as Record<TransitionStatus, CSSProperties>;
 
+interface ChildrenProps {
+  onMouseEnter: MouseEventHandler;
+  onMouseLeave: MouseEventHandler;
+}
+
 interface Props {
   text: string;
-  children: React.ReactNode;
+  children: React.ReactNode | ((props: ChildrenProps) => React.ReactNode);
 }
 
 interface Position {
@@ -34,14 +46,13 @@ const USER_EVENT_TIMEOUT = 75;
 export const Tooltip: FC<Props> = ({ text, children }) => {
   const [position, setPosition] = useState<Position | null>(null);
 
-  const containerRef = useRef<HTMLSpanElement | null>(null);
   const timeoutRef = useRef<number>();
   const nodeRef = useRef<HTMLDivElement | null>(null);
 
-  const { isMounted } = useIsMounted(!!position);
+  const isOpen = !!position;
 
-  const onMouseEnterHandler = () => {
-    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = containerRef.current!;
+  const onMouseEnterHandler = (e: MouseEvent<HTMLSpanElement>) => {
+    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = e.currentTarget!;
 
     timeoutRef.current = setTimeout(() => {
       setPosition({
@@ -60,16 +71,20 @@ export const Tooltip: FC<Props> = ({ text, children }) => {
   };
 
   return (
-    <span
-      ref={containerRef}
-      className={styles.container}
-      onMouseEnter={onMouseEnterHandler}
-      onMouseLeave={onMouseLeaveHandler}
-    >
-      {children}
+    <>
+      {typeof children === 'function' ? (
+        children({
+          onMouseEnter: onMouseEnterHandler,
+          onMouseLeave: onMouseLeaveHandler,
+        })
+      ) : (
+        <span onMouseEnter={onMouseEnterHandler} onMouseLeave={onMouseLeaveHandler}>
+          {children}
+        </span>
+      )}
       <Transition
         nodeRef={nodeRef}
-        in={isMounted}
+        in={isOpen}
         timeout={duration}
         mountOnEnter
         unmountOnExit
@@ -93,6 +108,6 @@ export const Tooltip: FC<Props> = ({ text, children }) => {
           </>
         )}
       </Transition>
-    </span>
+    </>
   );
 };

@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { CSSTransition } from 'react-transition-group';
 import { ANIMATION_DURATION_TIME } from '../../constants/animation.ts';
 import styles from './DrawerAnimation.module.scss';
 import { clsx } from 'clsx';
+import { Portal } from '../Portal/Portal.tsx';
 
 interface Props {
   isOpen: boolean;
@@ -11,75 +12,34 @@ interface Props {
   position: 'right' | 'left';
 }
 
-const getPositionStyles = (animationType: string, position: 'right' | 'left') => {
-  switch (animationType) {
-    case 'enter': {
-      if (position === 'right') {
-        return styles.contentEnterRight;
-      } else {
-        return styles.contentEnterLeft;
-      }
-    }
-    case 'exitActive': {
-      if (position === 'right') {
-        return styles.contentExitActiveRight;
-      } else {
-        return styles.contentExitActiveLeft;
-      }
-    }
-  }
-};
-
 export const DrawerAnimation = (props: Props) => {
   const { isOpen, onClose, children, position } = props;
 
-  const overlayRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
-
-  const [animationIn, setAnimationIn] = useState(false);
-
-  useEffect(() => {
-    setAnimationIn(isOpen);
-  }, [isOpen]);
+  const nodeRef = useRef<HTMLDivElement | null>(null);
 
   const animation = {
-    enter: getPositionStyles('enter', position),
-    enterActive: styles.contentEnterActive,
-    exit: styles.contentExit,
-    exitActive: getPositionStyles('exitActive', position),
-  };
-
-  const overlayAnimation = {
-    enter: styles.overlayEnter,
-    enterActive: styles.overlayEnterActive,
-    exit: styles.overlayExit,
-    exitActive: styles.overlayExitActive,
+    enter: styles.enter,
+    enterActive: styles.enterActive,
+    exit: styles.exit,
+    exitActive: styles.exitActive,
   };
 
   return (
-    <>
-      <CSSTransition
-        in={animationIn}
-        nodeRef={overlayRef}
-        timeout={ANIMATION_DURATION_TIME}
-        mountOnEnter
-        unmountOnExit
-        classNames={overlayAnimation}
-      >
-        <div ref={overlayRef} className={styles.overlay} onClick={onClose}></div>
-      </CSSTransition>
-      <CSSTransition
-        in={animationIn}
-        nodeRef={contentRef}
-        timeout={ANIMATION_DURATION_TIME}
-        mountOnEnter
-        unmountOnExit
-        classNames={animation}
-      >
-        <div ref={contentRef} className={clsx(styles.drawer, styles[position])}>
-          {children}
+    <CSSTransition
+      in={isOpen}
+      nodeRef={nodeRef}
+      timeout={ANIMATION_DURATION_TIME}
+      mountOnEnter
+      unmountOnExit
+      classNames={animation}
+    >
+      <Portal>
+        <div ref={nodeRef}>
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
+          <div className={styles.overlay} onClick={onClose}></div>
+          <div className={clsx(styles.drawer, styles[position])}>{children}</div>
         </div>
-      </CSSTransition>
-    </>
+      </Portal>
+    </CSSTransition>
   );
 };

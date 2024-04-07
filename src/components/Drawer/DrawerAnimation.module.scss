@@ -1,49 +1,53 @@
-.contentEnter {
-  &Right {
-    transform: translateX(400px);
+.enter {
+  .overlay {
+    opacity: 0;
   }
-  &Left {
-    transform: translateX(-400px);
-  }
-}
 
-.contentEnterActive {
-  transition: transform 300ms ease-out;
-  transform: translateX(0px);
-}
-
-.contentExit {
-  transition: transform 300ms ease-out;
-  transform: translateX(0px);
-}
-
-.contentExitActive {
-  &Right {
-    transition: transform 300ms ease-out;
-    transform: translateX(400px);
-  }
-  &Left {
-    transition: transform 300ms ease-out;
-    transform: translateX(-400px);
+  .drawer {
+    &.right {
+      transform: translateX(400px);
+    }
+    &.left {
+      transform: translateX(-400px);
+    }
   }
 }
 
-.overlayEnter {
-  opacity: 0;
+.enterActive {
+  .overlay {
+    transition: opacity 300ms ease-out;
+    opacity: 1;
+  }
+
+  .drawer {
+    transform: translateX(0px);
+  }
 }
 
-.overlayEnterActive {
-  transition: opacity 300ms ease-out;
-  opacity: 1;
+.exit {
+  .overlay {
+    opacity: 1;
+  }
+
+  .drawer {
+    transform: translateX(0px);
+  }
 }
 
-.overlayExit {
-  opacity: 1;
-}
+.exitActive {
+  .overlay {
+    opacity: 0;
+    transition: opacity 300ms ease-out;
+  }
 
-.overlayExitActive {
-  opacity: 0;
-  transition: opacity 300ms ease-out;
+  .drawer {
+    &.right {
+      transform: translateX(400px);
+    }
+    &.left {
+      transform: translateX(-400px);
+    }
+  }
 }
 
 .overlay {
@@ -70,6 +74,8 @@
 
   box-shadow: 0 5px 20px 0 rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+
+  transition: transform 300ms ease-out;
 
   &.left {
     left: 0;

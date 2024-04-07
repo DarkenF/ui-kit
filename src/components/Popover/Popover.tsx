@@ -1,10 +1,10 @@
 import styles from './Popover.module.scss';
+// eslint-disable-next-line import/named
 import { Transition, TransitionStatus } from 'react-transition-group';
-import { CSSProperties, FC, useRef, useState } from 'react';
+import { CSSProperties, FC, MouseEventHandler, useRef, useState } from 'react';
 import * as React from 'react';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside.ts';
 import { Portal } from '../Portal/Portal.tsx';
-import { useIsMounted } from '../../hooks/useIsMount.ts';
 
 const duration = 300;
 
@@ -20,9 +20,13 @@ const transitionStyles = {
   exited: { opacity: 0 },
 } as Record<TransitionStatus, CSSProperties>;
 
+interface ChildrenProps {
+  onClick: MouseEventHandler;
+}
+
 interface Props {
   content: React.ReactElement;
-  children: React.ReactNode;
+  children: React.ReactNode | ((props: ChildrenProps) => React.ReactNode);
 }
 
 interface Position {
@@ -35,8 +39,6 @@ export const Popover: FC<Props> = ({ content, children }) => {
 
   const popperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const { isMounted } = useIsMounted(!!position);
 
   const onClick = (e: React.MouseEvent<HTMLSpanElement>) => {
     const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = e.currentTarget;
@@ -63,12 +65,19 @@ export const Popover: FC<Props> = ({ content, children }) => {
 
   return (
     <>
-      <span ref={containerRef} className={styles.container} onClick={onClick}>
-        {children}
-      </span>
+      {typeof children === 'function' ? (
+        children({
+          onClick: onClick,
+        })
+      ) : (
+        // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
+        <span ref={containerRef} className={styles.container} onClick={onClick}>
+          {children}
+        </span>
+      )}
       <Transition
         nodeRef={popperRef}
-        in={isMounted}
+        in={!!position}
         timeout={duration}
         mountOnEnter
         unmountOnExit
@@ -76,16 +85,18 @@ export const Popover: FC<Props> = ({ content, children }) => {
         {(state) => (
           <>
             <Portal>
-              {React.cloneElement(content, {
-                ref: popperRef,
-                style: {
+              <div
+                ref={popperRef}
+                style={{
                   ...defaultStyle,
                   ...transitionStyles[state],
                   top: `${position?.y}px`,
                   left: `${position?.x}px`,
-                },
-                className: styles.popover,
-              })}
+                }}
+                className={styles.popover}
+              >
+                {content}
+              </div>
             </Portal>
           </>
         )}
