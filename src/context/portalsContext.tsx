@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { useKeypress } from '../hooks/useKeyPress.ts';
+import {useEvent} from "../hooks/useEvent.ts";
 
 type CloseFunction = () => void;
 interface PortalsContextData {
@@ -52,20 +53,20 @@ export const PortalsListenersProvider = ({ children }: { children: React.ReactNo
 };
 
 export const useClosePortalsListeners = (
-  closeHandler: CloseFunction,
+  closeFn: CloseFunction,
   isOpen: boolean,
 ) => {
   const context = useContext(PortalsContext);
-  const initialCloseHandler = useRef(closeHandler);
+  const closeHandler = useEvent(closeFn);
 
   useEffect(() => {
-    if (!isOpen) {
-      context?.unregisterCloseHandler(initialCloseHandler.current);
-
-      return;
+    if (isOpen) {
+      context?.registerCloseHandler(closeHandler);
     }
 
-    context?.registerCloseHandler(initialCloseHandler.current);
+    return () => {
+      context?.unregisterCloseHandler(closeHandler);
+    }
   }, [isOpen]);
 
   return context;
