@@ -7,7 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { useKeypress } from '../hooks/useKeyPress.ts';
-import {useEvent} from "../hooks/useEvent.ts";
+import { useEvent } from '../hooks/useEvent.ts';
 
 type CloseFunction = () => void;
 interface PortalsContextData {
@@ -52,10 +52,7 @@ export const PortalsListenersProvider = ({ children }: { children: React.ReactNo
   return <PortalsContext.Provider value={value}>{children}</PortalsContext.Provider>;
 };
 
-export const useClosePortalsListeners = (
-  closeFn: CloseFunction,
-  isOpen: boolean,
-) => {
+export const useClosePortalsListeners = (closeFn: CloseFunction, isOpen: boolean) => {
   const context = useContext(PortalsContext);
   const closeHandler = useEvent(closeFn);
 
@@ -66,7 +63,7 @@ export const useClosePortalsListeners = (
 
     return () => {
       context?.unregisterCloseHandler(closeHandler);
-    }
+    };
   }, [isOpen]);
 
   return context;

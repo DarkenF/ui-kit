@@ -1,12 +1,16 @@
 import { Modal } from './Modal/Modal.tsx';
 import { Drawer } from './Drawer/Drawer.tsx';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Tooltip } from './Tooltip/Tooltip.tsx';
 import { Popover } from './Popover/Popover.tsx';
+import { Dropdown } from './Dropdown/Dropdown.tsx';
 
 export const UiContainer = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
+  const anchorElementRef = useRef<HTMLButtonElement | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<boolean>(false);
+
   return (
     <div>
       <button onClick={() => setIsModalOpen((prev) => !prev)}>open modal</button>
@@ -27,6 +31,21 @@ export const UiContainer = () => {
       >
         <button onClick={() => setIsModalOpen((prev) => !prev)}>open modal</button>
       </Drawer>
+
+      <div>
+        <button ref={anchorElementRef} onClick={() => setOpenDropdown((prev) => !prev)}>
+          Dropdown
+        </button>
+        <Dropdown
+          isOpen={openDropdown}
+          onClose={() => setOpenDropdown(false)}
+          anchorElement={anchorElementRef.current}
+        >
+          <Dropdown.Item>1</Dropdown.Item>
+          <Dropdown.Item>2</Dropdown.Item>
+          <Dropdown.Item>3</Dropdown.Item>
+        </Dropdown>
+      </div>
     </div>
   );
 };
