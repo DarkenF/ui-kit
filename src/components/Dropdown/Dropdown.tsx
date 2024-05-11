@@ -1,9 +1,18 @@
 import styles from './Dropdown.module.scss';
 import { Transition, TransitionStatus } from 'react-transition-group';
-import { Children, cloneElement, CSSProperties, useRef } from 'react';
+import {
+  Children,
+  cloneElement,
+  CSSProperties,
+  MutableRefObject,
+  useRef,
+  useState,
+} from 'react';
 import * as React from 'react';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside.ts';
 import { Portal } from '../Portal/Portal.tsx';
+import { Loader } from '../Loader/Loader.tsx';
+import { useResizeObserver } from '../../hooks/useResizeObserver.tsx';
 
 const duration = 300;
 
@@ -26,8 +35,9 @@ interface DropdownExtensions {
 interface Props {
   children: React.ReactElement<DropdownItemProps>[];
   isOpen: boolean;
+  isLoading?: boolean;
   onClose: () => void;
-  anchorElement: HTMLElement | null;
+  anchorElementRef: MutableRefObject<HTMLElement | null>;
 }
 
 interface Position {
@@ -37,22 +47,26 @@ interface Position {
 
 export const Dropdown: React.FC<Props> & DropdownExtensions = ({
   children,
-  anchorElement,
+  anchorElementRef,
   onClose,
+  isLoading,
   isOpen,
 }: Props) => {
   const nodeRef = useRef<HTMLDivElement | null>(null);
-  const position: Position = anchorElement
-    ? {
-        y: anchorElement.offsetTop + anchorElement.offsetHeight,
-        x: anchorElement.offsetLeft,
-      }
-    : { y: 0, x: 0 };
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+
+  useResizeObserver(anchorElementRef, ([entry]) => {
+    const element = entry.target as HTMLElement;
+    setPosition({
+      y: element.offsetTop + element.offsetHeight,
+      x: element.offsetLeft,
+    });
+  });
 
   useOnClickOutside(nodeRef, (e: Event) => {
     if (
       nodeRef.current?.contains(e.target as HTMLElement) ||
-      anchorElement?.contains(e.target as HTMLElement)
+      anchorElementRef?.current?.contains(e.target as HTMLElement)
     ) {
       return;
     }
@@ -81,14 +95,18 @@ export const Dropdown: React.FC<Props> & DropdownExtensions = ({
               }}
               className={styles.dropdown}
             >
-              {Children.map(children, (child) =>
-                cloneElement(child, {
-                  ...child?.props,
-                  onClick: () => {
-                    child.props.onClick?.();
-                    onClose();
-                  },
-                }),
+              {isLoading ? (
+                <Loader />
+              ) : (
+                Children.map(children, (child) =>
+                  cloneElement(child, {
+                    ...child?.props,
+                    onClick: () => {
+                      child.props.onClick?.();
+                      onClose();
+                    },
+                  }),
+                )
               )}
             </div>
           </Portal>

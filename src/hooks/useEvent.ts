@@ -1,7 +1,7 @@
 import { useLatest } from './useLatest';
 import { useCallback } from 'react';
 
-export function useEvent<T extends (...args: any[]) => any>(callback?: T) {
+export function useEvent<T extends (...args: any[]) => any>(callback?: T): T {
   const callbackRef = useLatest<T | undefined>(callback);
 
   return useCallback(
@@ -9,5 +9,5 @@ export function useEvent<T extends (...args: any[]) => any>(callback?: T) {
       return callbackRef.current?.(...args);
     },
     [callbackRef],
-  );
+  ) as T;
 }

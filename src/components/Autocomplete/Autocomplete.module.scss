@@ -1,0 +1,28 @@
+.select {
+  display: inline-block;
+}
+
+.input {
+  padding: 2px 4px;
+  width: 200px;
+  height: 20px;
+
+  border-radius: 4px;
+  border: 1px solid lightgray;
+
+  font-family: Times, serif;
+  line-height: 20px;
+  font-size: 16px;
+}
+
+.inputPlaceholder {
+  padding: 2px 4px;
+  width: 200px;
+  height: 20px;
+
+  border-radius: 4px;
+  border: 1px solid lightgray;
+  cursor: pointer;
+
+  line-height: 20px;
+}
