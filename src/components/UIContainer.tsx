@@ -4,7 +4,8 @@ import { useRef, useState } from 'react';
 import { Tooltip } from './Tooltip/Tooltip.tsx';
 import { Popover } from './Popover/Popover.tsx';
 import { Dropdown } from './Dropdown/Dropdown.tsx';
-import { Autocomplete, Option } from './Autocomplete/Autocomplete.tsx';
+import { Autocomplete } from './Autocomplete/Autocomplete.tsx';
+import axios from 'axios';
 
 export const UiContainer = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -64,16 +65,19 @@ export const UiContainer = () => {
         <Autocomplete
           onChange={setSelectedValue2}
           selected={selectedValue2}
-          asyncOptions={() =>
-            new Promise<Option[]>((resolve) => {
-              setTimeout(() => {
-                resolve([
-                  { label: 'async label 1', value: '1' },
-                  { label: 'async label 2', value: '2' },
-                ]);
-              }, 2000);
-            })
-          }
+          options={async (_inputValue, abortSignal) => {
+            try {
+              const response = await axios.get(
+                'https://6651ecab20f4f4c442792a6a.mockapi.io/options',
+                { signal: abortSignal },
+              );
+
+              return response.data;
+            } catch (e) {
+              console.log(e);
+              return [];
+            }
+          }}
         ></Autocomplete>
       </div>
     </div>

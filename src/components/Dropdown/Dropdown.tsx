@@ -64,10 +64,7 @@ export const Dropdown: React.FC<Props> & DropdownExtensions = ({
   });
 
   useOnClickOutside(nodeRef, (e: Event) => {
-    if (
-      nodeRef.current?.contains(e.target as HTMLElement) ||
-      anchorElementRef?.current?.contains(e.target as HTMLElement)
-    ) {
+    if (anchorElementRef?.current?.contains(e.target as HTMLElement)) {
       return;
     }
 

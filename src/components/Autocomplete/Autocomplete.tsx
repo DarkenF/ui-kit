@@ -1,5 +1,5 @@
 import { Dropdown } from '../Dropdown';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import styles from './Autocomplete.module.scss';
 import { Loader } from '../Loader/Loader.tsx';
@@ -7,27 +7,38 @@ import { useEvent } from '../../hooks/useEvent.ts';
 export interface Option {
   label: string;
   value: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
+
+type AsyncOptionsFn = (
+  inputValue?: string,
+  abortSignal?: AbortSignal,
+) => Promise<Option[]>;
+
 interface Props {
-  options?: Option[];
-  asyncOptions?: (inputValue?: string) => Promise<Option[]>;
+  options?: Option[] | AsyncOptionsFn;
   onChange: (value: string, option: Option) => void;
   selected: Option | string | undefined;
+  renderOption?: (option: Option) => React.ReactNode;
 }
 
 export const Autocomplete = (props: Props) => {
-  const { options, selected, onChange, asyncOptions } = props;
+  const { options, selected, onChange, renderOption } = props;
 
-  const memoizedAsyncOptionsHandler =
-    useEvent<(inputValue?: string) => Promise<Option[]>>(asyncOptions);
+  const isAsyncOptions = typeof options === 'function';
+
+  const memoizedAsyncOptionsHandler = useEvent<AsyncOptionsFn>(
+    isAsyncOptions ? options : undefined,
+  );
 
   const [open, setOpen] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>('');
   const ref = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [localOptions, setLocalOptions] = useState<Option[]>(options || []);
+  const [localOptions, setLocalOptions] = useState<Option[]>(
+    isAsyncOptions ? [] : (options as Option[]),
+  );
   const [isOptionsLoading, setIsOptionsLoading] = useState<boolean>(false);
 
   const value = useMemo(() => {
@@ -55,7 +66,9 @@ export const Autocomplete = (props: Props) => {
   }, [open]);
 
   useEffect(() => {
-    const requestFn = memoizedAsyncOptionsHandler(inputValue);
+    const controller = new AbortController();
+    const signal = controller.signal;
+    const requestFn = memoizedAsyncOptionsHandler(inputValue, signal);
 
     if (!requestFn) {
       return;
@@ -70,6 +83,10 @@ export const Autocomplete = (props: Props) => {
       .finally(() => {
         setIsOptionsLoading(false);
       });
+
+    return () => {
+      controller.abort();
+    };
   }, [inputValue]);
 
   return (
@@ -102,7 +119,7 @@ export const Autocomplete = (props: Props) => {
             key={option.value + option.label}
             onClick={() => onChange(option.value, option)}
           >
-            {option.label}
+            {renderOption ? renderOption(option) : option.label}
           </Dropdown.Item>
         ))}
       </Dropdown>
