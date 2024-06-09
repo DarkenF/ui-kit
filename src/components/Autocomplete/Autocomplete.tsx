@@ -4,59 +4,81 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import styles from './Autocomplete.module.scss';
 import { Loader } from '../Loader/Loader.tsx';
 import { useEvent } from '../../hooks/useEvent.ts';
-export interface Option {
-  label: string;
-  value: string;
-  [key: string]: unknown;
-}
 
-type AsyncOptionsFn = (
+type AdvancedOption = Record<string, unknown>;
+
+type Option<P extends AdvancedOption> = {
+  label?: string;
+  id: string;
+} & P;
+
+type AsyncOptionsFn<P extends AdvancedOption> = (
   inputValue?: string,
   abortSignal?: AbortSignal,
-) => Promise<Option[]>;
+) => Promise<Option<P>[]>;
 
-interface Props {
-  options?: Option[] | AsyncOptionsFn;
-  onChange: (value: string, option: Option) => void;
-  selected: Option | string | undefined;
-  renderOption?: (option: Option) => React.ReactNode;
+interface Props<P extends AdvancedOption> {
+  options?: Option<P>[] | AsyncOptionsFn<P>;
+  onChange: (value: string, option: Option<P>) => void;
+  onChangeInputValue?: (value: string) => void;
+  inputValue?: string;
+  selected: Option<P> | string | undefined;
+  renderOption?: (option: Option<P>) => React.ReactNode;
+  getLabel?: (option: Option<P>) => string;
 }
 
-export const Autocomplete = (props: Props) => {
-  const { options, selected, onChange, renderOption } = props;
+export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
+  const {
+    options,
+    selected,
+    onChange,
+    renderOption,
+    getLabel,
+    onChangeInputValue,
+    inputValue: outerInputValue,
+  } = props;
 
   const isAsyncOptions = typeof options === 'function';
 
-  const memoizedAsyncOptionsHandler = useEvent<AsyncOptionsFn>(
-    isAsyncOptions ? options : undefined,
-  );
+  const memoizedAsyncOptionsHandler = isAsyncOptions
+    ? useEvent<AsyncOptionsFn<P>>(options)
+    : undefined;
 
   const [open, setOpen] = useState<boolean>(false);
-  const [inputValue, setInputValue] = useState<string>('');
+  const [localInputValue, setLocalInputValue] = useState<string>('');
   const ref = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [localOptions, setLocalOptions] = useState<Option[]>(
-    isAsyncOptions ? [] : (options as Option[]),
+  const [localOptions, setLocalOptions] = useState<Option<P>[]>(
+    isAsyncOptions ? [] : (options as Option<P>[]),
   );
   const [isOptionsLoading, setIsOptionsLoading] = useState<boolean>(false);
 
+  const inputValue =
+    typeof outerInputValue !== 'undefined' ? outerInputValue : localInputValue;
+
   const value = useMemo(() => {
-    const normalizeValue = typeof selected === 'string' ? selected : selected?.value;
-    const matchedOption = localOptions.find((item) => item.value === normalizeValue);
+    const normalizeValue = typeof selected === 'string' ? selected : selected?.id;
+    const matchedOption = localOptions.find((item) => item.id === normalizeValue);
 
     return matchedOption;
   }, [selected, localOptions]);
 
   const filteredOptions = useMemo(() => {
-    return localOptions.filter((item) =>
-      item.label.toLowerCase().includes(inputValue.toLowerCase()),
-    );
+    return localOptions.filter((item) => {
+      const label = item.label || getLabel?.(item);
+
+      if (!label) {
+        return [];
+      }
+
+      return label.toLowerCase().includes(inputValue.toLowerCase());
+    });
   }, [localOptions, inputValue]);
 
   const onDropdownOpen = () => {
     setOpen((prev) => !prev);
-    setInputValue(value?.label || '');
+    setLocalInputValue(value?.label || '');
   };
 
   useEffect(() => {
@@ -68,11 +90,12 @@ export const Autocomplete = (props: Props) => {
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
-    const requestFn = memoizedAsyncOptionsHandler(inputValue, signal);
 
-    if (!requestFn) {
+    if (!memoizedAsyncOptionsHandler || !open) {
       return;
     }
+
+    const requestFn = memoizedAsyncOptionsHandler(inputValue, signal);
 
     setIsOptionsLoading(true);
 
@@ -87,7 +110,23 @@ export const Autocomplete = (props: Props) => {
     return () => {
       controller.abort();
     };
-  }, [inputValue]);
+  }, [inputValue, open]);
+
+  const getDisplayLabel = (option: Option<P> | undefined) => {
+    if (!option) {
+      return '';
+    }
+
+    if (renderOption) {
+      return renderOption(option);
+    }
+
+    if (getLabel) {
+      return getLabel(option);
+    }
+
+    return option.label;
+  };
 
   return (
     <div className={styles.select}>
@@ -96,14 +135,19 @@ export const Autocomplete = (props: Props) => {
           // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
           <div onClick={onDropdownOpen} className={styles.inputPlaceholder}>
             {isOptionsLoading && <Loader />}
-            {value?.label}
+            {getDisplayLabel(value)}
           </div>
         ) : (
           <input
             ref={inputRef}
             className={styles.input}
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value;
+
+              onChangeInputValue?.(v);
+              setLocalInputValue(v);
+            }}
             type="text"
           />
         )}
@@ -116,10 +160,10 @@ export const Autocomplete = (props: Props) => {
       >
         {filteredOptions.map((option) => (
           <Dropdown.Item
-            key={option.value + option.label}
-            onClick={() => onChange(option.value, option)}
+            key={option.id + option.label}
+            onClick={() => onChange(option.id, option)}
           >
-            {renderOption ? renderOption(option) : option.label}
+            {getDisplayLabel(option)}
           </Dropdown.Item>
         ))}
       </Dropdown>

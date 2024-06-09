@@ -7,12 +7,17 @@ import { Dropdown } from './Dropdown/Dropdown.tsx';
 import { Autocomplete } from './Autocomplete/Autocomplete.tsx';
 import axios from 'axios';
 
+type ModifyOption = {
+  id: string;
+  label: string;
+  secondaryLabel: string;
+};
 export const UiContainer = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const anchorElementRef = useRef<HTMLButtonElement | null>(null);
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
-  const [selectedValue, setSelectedValue] = useState<string>('');
+  const [selectedValue, setSelectedValue] = useState<ModifyOption>();
   const [selectedValue2, setSelectedValue2] = useState<string>('');
 
   return (
@@ -51,12 +56,14 @@ export const UiContainer = () => {
         </Dropdown>
       </div>
       <div>
-        <Autocomplete
-          onChange={setSelectedValue}
+        <Autocomplete<ModifyOption>
+          onChange={(_v, option) => {
+            setSelectedValue(option);
+          }}
           options={[
-            { label: 'label 1', value: '1' },
-            { label: 'label 2', value: '2' },
-            { label: 'label 3', value: '3' },
+            { label: 'label 1', id: '1', secondaryLabel: '' },
+            { label: 'label 2', id: '2', secondaryLabel: '' },
+            { label: 'label 3', id: '3', secondaryLabel: '' },
           ]}
           selected={selectedValue}
         ></Autocomplete>
