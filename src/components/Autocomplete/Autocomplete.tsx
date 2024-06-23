@@ -8,7 +8,6 @@ import { useEvent } from '../../hooks/useEvent.ts';
 type AdvancedOption = Record<string, unknown>;
 
 type Option<P extends AdvancedOption> = {
-  label?: string;
   id: string;
 } & P;
 
@@ -24,7 +23,7 @@ interface Props<P extends AdvancedOption> {
   inputValue?: string;
   selected: Option<P> | string | undefined;
   renderOption?: (option: Option<P>) => React.ReactNode;
-  getLabel?: (option: Option<P>) => string;
+  getLabel: (option: Option<P>) => string;
 }
 
 export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
@@ -40,9 +39,7 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
 
   const isAsyncOptions = typeof options === 'function';
 
-  const memoizedAsyncOptionsHandler = isAsyncOptions
-    ? useEvent<AsyncOptionsFn<P>>(options)
-    : undefined;
+  const memoizedAsyncOptionsHandler = useEvent<AsyncOptionsFn<P> | (() => null)>(isAsyncOptions ? options : () => null)
 
   const [open, setOpen] = useState<boolean>(false);
   const [localInputValue, setLocalInputValue] = useState<string>('');
@@ -66,7 +63,7 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
 
   const filteredOptions = useMemo(() => {
     return localOptions.filter((item) => {
-      const label = item.label || getLabel?.(item);
+      const label = getLabel(item);
 
       if (!label) {
         return [];
@@ -78,7 +75,7 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
 
   const onDropdownOpen = () => {
     setOpen((prev) => !prev);
-    setLocalInputValue(value?.label || '');
+    setLocalInputValue(value ? getLabel(value) : '');
   };
 
   useEffect(() => {
@@ -91,11 +88,15 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    if (!memoizedAsyncOptionsHandler || !open) {
+    if (!open || !isAsyncOptions) {
       return;
     }
 
     const requestFn = memoizedAsyncOptionsHandler(inputValue, signal);
+
+    if (!requestFn) {
+      return;
+    }
 
     setIsOptionsLoading(true);
 
@@ -112,7 +113,7 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
     };
   }, [inputValue, open]);
 
-  const getDisplayLabel = (option: Option<P> | undefined) => {
+  const getDisplayLabel = (option: Option<P> | undefined): string | React.ReactNode => {
     if (!option) {
       return '';
     }
@@ -121,11 +122,7 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
       return renderOption(option);
     }
 
-    if (getLabel) {
-      return getLabel(option);
-    }
-
-    return option.label;
+    return getLabel(option);
   };
 
   return (
