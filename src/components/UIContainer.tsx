@@ -57,6 +57,7 @@ export const UiContainer = () => {
       </div>
       <div>
         <Autocomplete<ModifyOption>
+          getLabel={item => item.label}
           onChange={(_v, option) => {
             setSelectedValue(option);
           }}
@@ -69,7 +70,8 @@ export const UiContainer = () => {
         ></Autocomplete>
       </div>
       <div>
-        <Autocomplete
+        <Autocomplete<ModifyOption>
+          getLabel={item => item.label}
           onChange={setSelectedValue2}
           selected={selectedValue2}
           options={async (_inputValue, abortSignal) => {
