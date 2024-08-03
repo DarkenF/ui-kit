@@ -5,6 +5,7 @@ import { CSSProperties, FC, MouseEventHandler, useRef, useState } from 'react';
 import * as React from 'react';
 import { useOnClickOutside } from '../../hooks/useOnClickOutside.ts';
 import { Portal } from '../Portal/Portal.tsx';
+import { usePopperPlacement } from '../../hooks/usePoperPlacement.ts';
 
 const duration = 300;
 
@@ -22,6 +23,7 @@ const transitionStyles = {
 
 interface ChildrenProps {
   onClick: MouseEventHandler;
+  ref: React.MutableRefObject<any>;
 }
 
 interface Props {
@@ -29,30 +31,16 @@ interface Props {
   children: React.ReactNode | ((props: ChildrenProps) => React.ReactNode);
 }
 
-interface Position {
-  x: number;
-  y: number;
-}
-
 export const Popover: FC<Props> = ({ content, children }) => {
-  const [position, setPosition] = useState<Position | null>(null);
+  const [open, setOpen] = useState<boolean>(false);
 
   const popperRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const onClick = (e: React.MouseEvent<HTMLSpanElement>) => {
-    const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = e.currentTarget;
+  const position = usePopperPlacement({ triggerRef: containerRef, popperRef: popperRef });
 
-    if (position) {
-      setPosition(null);
-
-      return;
-    }
-
-    setPosition({
-      y: offsetTop + offsetHeight,
-      x: offsetLeft + offsetWidth,
-    });
+  const onClick = () => {
+    setOpen((prev) => !prev);
   };
 
   useOnClickOutside(popperRef, (e: Event) => {
@@ -60,7 +48,7 @@ export const Popover: FC<Props> = ({ content, children }) => {
       return;
     }
 
-    setPosition(null);
+    setOpen(false);
   });
 
   return (
@@ -68,6 +56,7 @@ export const Popover: FC<Props> = ({ content, children }) => {
       {typeof children === 'function' ? (
         children({
           onClick: onClick,
+          ref: containerRef,
         })
       ) : (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
@@ -77,7 +66,7 @@ export const Popover: FC<Props> = ({ content, children }) => {
       )}
       <Transition
         nodeRef={popperRef}
-        in={!!position}
+        in={open}
         timeout={duration}
         mountOnEnter
         unmountOnExit

@@ -39,7 +39,9 @@ export const Autocomplete = <P extends AdvancedOption>(props: Props<P>) => {
 
   const isAsyncOptions = typeof options === 'function';
 
-  const memoizedAsyncOptionsHandler = useEvent<AsyncOptionsFn<P> | (() => null)>(isAsyncOptions ? options : () => null)
+  const memoizedAsyncOptionsHandler = useEvent<AsyncOptionsFn<P> | (() => null)>(
+    isAsyncOptions ? options : () => null,
+  );
 
   const [open, setOpen] = useState<boolean>(false);
   const [localInputValue, setLocalInputValue] = useState<string>('');

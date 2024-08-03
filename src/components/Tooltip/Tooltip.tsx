@@ -29,6 +29,7 @@ const transitionStyles = {
 interface ChildrenProps {
   onMouseEnter: MouseEventHandler;
   onMouseLeave: MouseEventHandler;
+  ref: React.MutableRefObject<HTMLElement | null>;
 }
 
 interface Props {
@@ -48,6 +49,7 @@ export const Tooltip: FC<Props> = ({ text, children }) => {
 
   const timeoutRef = useRef<number>();
   const nodeRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLDivElement | null>(null);
 
   const isOpen = !!position;
 
@@ -76,9 +78,14 @@ export const Tooltip: FC<Props> = ({ text, children }) => {
         children({
           onMouseEnter: onMouseEnterHandler,
           onMouseLeave: onMouseLeaveHandler,
+          ref: triggerRef,
         })
       ) : (
-        <span onMouseEnter={onMouseEnterHandler} onMouseLeave={onMouseLeaveHandler}>
+        <span
+          ref={triggerRef}
+          onMouseEnter={onMouseEnterHandler}
+          onMouseLeave={onMouseLeaveHandler}
+        >
           {children}
         </span>
       )}

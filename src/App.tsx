@@ -5,7 +5,17 @@ function App() {
   return (
     <PortalsListenersProvider>
       <>
-        <UiContainer />
+        <div
+          style={{
+            width: '1500px',
+            height: '3000px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <UiContainer />
+        </div>
         <div id="portal-container"></div>
       </>
     </PortalsListenersProvider>
