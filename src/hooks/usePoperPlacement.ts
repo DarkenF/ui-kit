@@ -1,11 +1,10 @@
 import * as React from 'react';
 
 import { useEffect, useState } from 'react';
-import { debounce } from './useDebounce.ts';
+import {useRafThrottle} from "./useRafThrottle.ts";
 
 export type ResizeOptions = {
   handleResize: boolean;
-  debounce?: number;
   borderMargin?: number;
   popperMargin?: number;
 };
@@ -88,9 +87,9 @@ export const usePopperPlacement = ({
     handleResize: true,
     borderMargin: 14,
     popperMargin: 4,
-    debounce: 500,
   },
 }: PropsType) => {
+  const [isOpen, setIsOpen] = useState<boolean>(false)
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
 
   const placePopper = React.useCallback(() => {
@@ -99,65 +98,43 @@ export const usePopperPlacement = ({
     const { current: triggerEl } = triggerRef;
     const { current: popEl } = popperRef;
 
-    // TODO: Как сделать без getBoundingClientRect?
-    const popperRect = popEl.getBoundingClientRect();
-
     const defaultPopperPosition = getDefaultPosition(
       triggerEl,
       popEl,
       direction,
       resizeOptions,
     );
-    const calcLeft = (prev: Position) => {
-      const rightOutsideDiff = window.innerWidth - (popperRect.left + popperRect.width);
-      const leftOutsideDiff = popperRect.left;
 
-      if (leftOutsideDiff > 0 && rightOutsideDiff > 0) {
-        return defaultPopperPosition.x;
-      }
-      // За окном слева
-      if (leftOutsideDiff < 0) {
-        return popEl?.offsetLeft - leftOutsideDiff + Number(resizeOptions?.borderMargin);
-      }
+    // Посчитано только для direction = 'bottom',
+    const totalOffsetRight = triggerEl?.offsetLeft + triggerEl?.offsetWidth / 2 + popEl?.offsetWidth / 2 + Number(resizeOptions?.borderMargin)
+    const totalOffsetLeft = triggerEl?.offsetLeft - (popEl?.offsetWidth / 2  - triggerEl?.offsetWidth / 2) - Number(resizeOptions?.borderMargin)
+    const totalOffsetTop = triggerEl?.offsetTop + triggerEl?.offsetHeight + Number(resizeOptions?.borderMargin) + Number(resizeOptions?.popperMargin)
+    const totalOffsetBottom = triggerEl?.offsetTop + triggerEl?.offsetHeight + popEl?.offsetHeight + Number(resizeOptions?.borderMargin) + Number(resizeOptions?.popperMargin)
 
-      // За окном справа
-      if (rightOutsideDiff < 0) {
-        return popEl?.offsetLeft + rightOutsideDiff - Number(resizeOptions?.borderMargin);
-      }
+    const scrollBarWidth = window.innerWidth - document.body.clientWidth
 
-      return prev.x;
-    };
-
-    const calcTop = (prev: Position) => {
-      const bottomOutsideDiff = window.innerHeight - (popperRect.top + popperRect.height);
-      const topOutsideDiff = popperRect.top;
-
-      if (topOutsideDiff > 0 && bottomOutsideDiff > 0) {
-        return defaultPopperPosition.y;
-      }
-      // За окном сверху
-      if (topOutsideDiff < 0) {
-        return popEl?.offsetTop - topOutsideDiff + Number(resizeOptions?.borderMargin);
-      }
-
-      // За окном справа
-      if (bottomOutsideDiff < 0) {
-        return popEl?.offsetTop + bottomOutsideDiff - Number(resizeOptions?.borderMargin);
-      }
-
-      return prev.y;
-    };
+    const rightOutsideDiff = window.innerWidth - scrollBarWidth + window.scrollX - totalOffsetRight;
+    const leftOutsideDiff = totalOffsetLeft - window.scrollX;
+    const topOutsideDiff = totalOffsetTop - window.scrollY;
+    const bottomOutsideDiff = window.innerHeight - scrollBarWidth + window.scrollY - totalOffsetBottom;
 
     setPosition((prev) => ({
       ...prev,
-      x: calcLeft(prev),
-      y: calcTop(prev),
+      x: rightOutsideDiff < 0 ? defaultPopperPosition.x + rightOutsideDiff : leftOutsideDiff < 0 ? defaultPopperPosition.x - leftOutsideDiff : defaultPopperPosition.x,
+      y: topOutsideDiff < 0 ? defaultPopperPosition.y - topOutsideDiff : bottomOutsideDiff < 0 ? defaultPopperPosition.y + bottomOutsideDiff : defaultPopperPosition.y,
     }));
   }, [triggerRef, popperRef, direction]);
 
+  const throttledPopperPlace = useRafThrottle(placePopper)
+
   useEffect(() => {
     const observer = new MutationObserver(() => {
-      placePopper();
+      if (popperRef.current) {
+        placePopper();
+        setIsOpen(true)
+      } else {
+        setIsOpen(false)
+      }
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
@@ -168,16 +145,16 @@ export const usePopperPlacement = ({
   }, []);
 
   React.useEffect(() => {
-    if (!resizeOptions.handleResize) return;
-
-    const debouncedListener = debounce(placePopper, resizeOptions.debounce!);
-
-    window.addEventListener('resize', debouncedListener);
+    if (resizeOptions.handleResize && isOpen) {
+      window.addEventListener('resize', throttledPopperPlace);
+      window.addEventListener('scroll', throttledPopperPlace);
+    }
 
     return () => {
-      window.removeEventListener('resize', debouncedListener);
+      window.removeEventListener('resize', throttledPopperPlace);
+      window.removeEventListener('scroll', throttledPopperPlace);
     };
-  }, []);
+  }, [isOpen]);
 
   return position;
 };
