@@ -118,10 +118,19 @@ export const usePopperPlacement = ({
     const topOutsideDiff = totalOffsetTop - window.scrollY;
     const bottomOutsideDiff = window.innerHeight - scrollBarWidth + window.scrollY - totalOffsetBottom;
 
+    const calcLeft =  rightOutsideDiff < 0 ? defaultPopperPosition.x + rightOutsideDiff : leftOutsideDiff < 0 ? defaultPopperPosition.x - leftOutsideDiff : defaultPopperPosition.x;
+    const calcTop = topOutsideDiff < 0 ? defaultPopperPosition.y - topOutsideDiff : bottomOutsideDiff < 0 ? defaultPopperPosition.y + bottomOutsideDiff : defaultPopperPosition.y;
+
+    // Ограничение по координатам
+    const minLeft = triggerEl?.offsetLeft + triggerEl?.offsetWidth - popEl?.offsetWidth
+    const maxLeft = triggerEl?.offsetLeft
+    const minTop = triggerEl?.offsetTop - popEl?.offsetHeight - Number(resizeOptions?.popperMargin)
+    const maxTop = triggerEl?.offsetTop + triggerEl?.offsetHeight + Number(resizeOptions?.popperMargin)
+
     setPosition((prev) => ({
       ...prev,
-      x: rightOutsideDiff < 0 ? defaultPopperPosition.x + rightOutsideDiff : leftOutsideDiff < 0 ? defaultPopperPosition.x - leftOutsideDiff : defaultPopperPosition.x,
-      y: topOutsideDiff < 0 ? defaultPopperPosition.y - topOutsideDiff : bottomOutsideDiff < 0 ? defaultPopperPosition.y + bottomOutsideDiff : defaultPopperPosition.y,
+      x: calcLeft < minLeft ? minLeft : calcLeft > maxLeft ? maxLeft : calcLeft,
+      y: calcTop < minTop ? minTop : calcTop > maxTop ? maxTop : calcTop,
     }));
   }, [triggerRef, popperRef, direction]);
 
