@@ -1,0 +1,44 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  box-sizing: border-box;
+  margin-bottom: 1px;
+
+  .head {
+    padding: 12px;
+    border: 1px solid lightgray;
+
+    display: flex;
+    justify-content: space-between;
+
+    .arrow {
+      flex: 0 0 auto;
+      border: solid black;
+      border-width: 0 3px 3px 0;
+      display: inline-block;
+      padding: 3px;
+
+      transform: rotate(-135deg);
+
+      &.down {
+        transform: rotate(45deg);
+      }
+    }
+  }
+
+  .content {
+    margin-top: 1px;
+
+    transition: max-height 1s;
+    max-height: 3000px;
+    overflow: hidden;
+
+    &.closed {
+      transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+      max-height: 0;
+    }
+  }
+}

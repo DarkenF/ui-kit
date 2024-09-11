@@ -6,13 +6,13 @@ function App() {
     <PortalsListenersProvider>
       <>
         <div
-          style={{
-            width: '1500px',
-            height: '3000px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
+        // style={{
+        //   width: '1500px',
+        //   height: '3000px',
+        //   display: 'flex',
+        //   justifyContent: 'center',
+        //   alignItems: 'center',
+        // }}
         >
           <UiContainer />
         </div>

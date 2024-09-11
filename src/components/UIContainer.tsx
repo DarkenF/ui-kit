@@ -6,6 +6,7 @@ import { Popover } from './Popover/Popover.tsx';
 import { Dropdown } from './Dropdown/Dropdown.tsx';
 import { Autocomplete } from './Autocomplete/Autocomplete.tsx';
 import axios from 'axios';
+import { Collapse } from './Collpase/Collapse.tsx';
 
 type ModifyOption = {
   id: string;
@@ -88,6 +89,27 @@ export const UiContainer = () => {
             }
           }}
         ></Autocomplete>
+      </div>
+
+      <div style={{ width: 300 }}>
+        <Collapse>
+          <Collapse.Item title="title 1">
+            Lorem Ipsum - это текст-рыба, часто используемый в печати и вэб-дизайне. Lorem
+            Ipsum является стандартной рыбой для текстов на латинице с начала XVI века. В
+            то время некий безымянный печатник соз
+          </Collapse.Item>
+          <Collapse.Item title="title 2">
+            Давно выяснено, что при оценке дизайна и композиции читаемый текст мешает
+            сосредоточиться. Lorem Ipsum используют потому, что тот обеспечивает более или
+            менее стандартное заполнение шаблона,
+          </Collapse.Item>
+          <Collapse.Item title="title 3">
+            Есть много вариантов Lorem Ipsum, но большинство из них имеет не всегда
+            приемлемые модификации, например, юмористические вставки или слова, которые
+            даже отдалённо не напоминают латынь. Если вам нужен Lorem Ipsum для серьёзного
+            проекта,
+          </Collapse.Item>
+        </Collapse>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { useEffect, useState } from 'react';
-import {useRafThrottle} from "./useRafThrottle.ts";
+import { useRafThrottle } from './useRafThrottle.ts';
 
 export type ResizeOptions = {
   handleResize: boolean;
@@ -89,7 +89,7 @@ export const usePopperPlacement = ({
     popperMargin: 4,
   },
 }: PropsType) => {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
 
   const placePopper = React.useCallback(() => {
@@ -106,26 +106,58 @@ export const usePopperPlacement = ({
     );
 
     // Посчитано только для direction = 'bottom',
-    const totalOffsetRight = triggerEl?.offsetLeft + triggerEl?.offsetWidth / 2 + popEl?.offsetWidth / 2 + Number(resizeOptions?.borderMargin)
-    const totalOffsetLeft = triggerEl?.offsetLeft - (popEl?.offsetWidth / 2  - triggerEl?.offsetWidth / 2) - Number(resizeOptions?.borderMargin)
-    const totalOffsetTop = triggerEl?.offsetTop + triggerEl?.offsetHeight + Number(resizeOptions?.borderMargin) + Number(resizeOptions?.popperMargin)
-    const totalOffsetBottom = triggerEl?.offsetTop + triggerEl?.offsetHeight + popEl?.offsetHeight + Number(resizeOptions?.borderMargin) + Number(resizeOptions?.popperMargin)
+    const totalOffsetRight =
+      triggerEl?.offsetLeft +
+      triggerEl?.offsetWidth / 2 +
+      popEl?.offsetWidth / 2 +
+      Number(resizeOptions?.borderMargin);
+    const totalOffsetLeft =
+      triggerEl?.offsetLeft -
+      (popEl?.offsetWidth / 2 - triggerEl?.offsetWidth / 2) -
+      Number(resizeOptions?.borderMargin);
+    const totalOffsetTop =
+      triggerEl?.offsetTop +
+      triggerEl?.offsetHeight +
+      Number(resizeOptions?.borderMargin) +
+      Number(resizeOptions?.popperMargin);
+    const totalOffsetBottom =
+      triggerEl?.offsetTop +
+      triggerEl?.offsetHeight +
+      popEl?.offsetHeight +
+      Number(resizeOptions?.borderMargin) +
+      Number(resizeOptions?.popperMargin);
 
-    const scrollBarWidth = window.innerWidth - document.body.clientWidth
+    const scrollBarWidth = window.innerWidth - document.body.clientWidth;
 
-    const rightOutsideDiff = window.innerWidth - scrollBarWidth + window.scrollX - totalOffsetRight;
+    const rightOutsideDiff =
+      window.innerWidth - scrollBarWidth + window.scrollX - totalOffsetRight;
     const leftOutsideDiff = totalOffsetLeft - window.scrollX;
     const topOutsideDiff = totalOffsetTop - window.scrollY;
-    const bottomOutsideDiff = window.innerHeight - scrollBarWidth + window.scrollY - totalOffsetBottom;
+    const bottomOutsideDiff =
+      window.innerHeight - scrollBarWidth + window.scrollY - totalOffsetBottom;
 
-    const calcLeft =  rightOutsideDiff < 0 ? defaultPopperPosition.x + rightOutsideDiff : leftOutsideDiff < 0 ? defaultPopperPosition.x - leftOutsideDiff : defaultPopperPosition.x;
-    const calcTop = topOutsideDiff < 0 ? defaultPopperPosition.y - topOutsideDiff : bottomOutsideDiff < 0 ? defaultPopperPosition.y + bottomOutsideDiff : defaultPopperPosition.y;
+    const calcLeft =
+      rightOutsideDiff < 0
+        ? defaultPopperPosition.x + rightOutsideDiff
+        : leftOutsideDiff < 0
+          ? defaultPopperPosition.x - leftOutsideDiff
+          : defaultPopperPosition.x;
+    const calcTop =
+      topOutsideDiff < 0
+        ? defaultPopperPosition.y - topOutsideDiff
+        : bottomOutsideDiff < 0
+          ? defaultPopperPosition.y + bottomOutsideDiff
+          : defaultPopperPosition.y;
 
     // Ограничение по координатам
-    const minLeft = triggerEl?.offsetLeft + triggerEl?.offsetWidth - popEl?.offsetWidth
-    const maxLeft = triggerEl?.offsetLeft
-    const minTop = triggerEl?.offsetTop - popEl?.offsetHeight - Number(resizeOptions?.popperMargin)
-    const maxTop = triggerEl?.offsetTop + triggerEl?.offsetHeight + Number(resizeOptions?.popperMargin)
+    const minLeft = triggerEl?.offsetLeft + triggerEl?.offsetWidth - popEl?.offsetWidth;
+    const maxLeft = triggerEl?.offsetLeft;
+    const minTop =
+      triggerEl?.offsetTop - popEl?.offsetHeight - Number(resizeOptions?.popperMargin);
+    const maxTop =
+      triggerEl?.offsetTop +
+      triggerEl?.offsetHeight +
+      Number(resizeOptions?.popperMargin);
 
     setPosition((prev) => ({
       ...prev,
@@ -134,15 +166,15 @@ export const usePopperPlacement = ({
     }));
   }, [triggerRef, popperRef, direction]);
 
-  const throttledPopperPlace = useRafThrottle(placePopper)
+  const throttledPopperPlace = useRafThrottle(placePopper);
 
   useEffect(() => {
     const observer = new MutationObserver(() => {
       if (popperRef.current) {
         placePopper();
-        setIsOpen(true)
+        setIsOpen(true);
       } else {
-        setIsOpen(false)
+        setIsOpen(false);
       }
     });
 
