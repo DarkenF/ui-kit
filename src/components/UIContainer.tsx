@@ -7,6 +7,7 @@ import { Dropdown } from './Dropdown/Dropdown.tsx';
 import { Autocomplete } from './Autocomplete/Autocomplete.tsx';
 import axios from 'axios';
 import { Collapse } from './Collpase/Collapse.tsx';
+import { toaster } from './Toaster/Toaster.tsx';
 
 type ModifyOption = {
   id: string;
@@ -90,6 +91,10 @@ export const UiContainer = () => {
           }}
         ></Autocomplete>
       </div>
+
+      <button onClick={() => toaster.addToast('Сообщение для тостера')}>
+        open toaster
+      </button>
 
       <div style={{ width: 300 }}>
         <Collapse>

@@ -1,6 +1,5 @@
 import * as React from 'react';
-import { Children, cloneElement } from 'react';
-import { useSet } from '../../hooks/useSet.ts';
+import { Children, cloneElement, useState } from 'react';
 
 import styles from './Collapse.module.scss';
 import { clsx } from 'clsx';
@@ -14,20 +13,21 @@ interface Props {
 export const Collapse = (props: Props) => {
   const { children, isSingle } = props;
 
-  const openedIndexSet = useSet<number>();
+  const [openedIndexes, setOpenedIndexes] = useState<number[]>([]);
 
   const onToggleItem = (index: number) => {
-    const isExist = openedIndexSet.has(index);
+    const openedCollapseItemIndex = openedIndexes.indexOf(index);
 
-    if (isExist) {
-      openedIndexSet.remove(index);
+    if (openedCollapseItemIndex !== -1) {
+      const nextOpenIndexesState = [...openedIndexes];
+      nextOpenIndexesState.splice(openedCollapseItemIndex, 1);
+      setOpenedIndexes(nextOpenIndexesState);
     } else {
       if (isSingle) {
-        openedIndexSet.clear();
-        openedIndexSet.add(index);
+        setOpenedIndexes([index]);
         return;
       }
-      openedIndexSet.add(index);
+      setOpenedIndexes((prev) => [...prev, index]);
     }
   };
 
@@ -36,7 +36,7 @@ export const Collapse = (props: Props) => {
       {Children.map(children, (child, index) => {
         return cloneElement(child, {
           ...child?.props,
-          isOpen: openedIndexSet.has(index),
+          isOpen: openedIndexes.includes(index),
           onClick: () => {
             onToggleItem(index);
             child.props.onClick?.();
@@ -59,6 +59,7 @@ function CollapseItem(props: CollapseItemProps) {
   const { children, isOpen, onClick, title } = props;
 
   return (
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
     <div className={styles.item} onClick={onClick}>
       <div className={styles.head}>
         <p>{title}</p>

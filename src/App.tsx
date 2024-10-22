@@ -1,6 +1,7 @@
 import './App.css';
 import { UiContainer } from './components/UIContainer.tsx';
 import { PortalsListenersProvider } from './context/portalsContext.tsx';
+import { Toaster } from './components/Toaster';
 function App() {
   return (
     <PortalsListenersProvider>
@@ -16,6 +17,7 @@ function App() {
         >
           <UiContainer />
         </div>
+        <Toaster></Toaster>
         <div id="portal-container"></div>
       </>
     </PortalsListenersProvider>
