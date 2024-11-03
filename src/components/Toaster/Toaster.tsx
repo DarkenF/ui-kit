@@ -5,6 +5,7 @@ import { Portal } from '../Portal/Portal.tsx';
 import { Toast } from './Toast.tsx';
 export interface ToasterItem {
   id: number;
+  position: number;
   message: string;
   type: 'success' | 'error' | 'info';
 }
@@ -15,7 +16,20 @@ export class ToasterClass {
   addToast = (message: string, type: ToasterItem['type'] = 'info') => {
     const id = Date.now();
     if (ToasterClass.toastUpdater) {
-      ToasterClass.toastUpdater((prev) => [...prev, { message, type, id }]);
+      ToasterClass.toastUpdater((prev) => {
+        const nextToaster = {
+          message,
+          type,
+          position: 0,
+          id,
+        };
+        const updatedPrevToasters = prev.map((item, index) => ({
+          ...item,
+          position: index + 1,
+        }));
+
+        return [nextToaster, ...updatedPrevToasters];
+      });
     }
   };
 
@@ -42,7 +56,7 @@ export const Toaster = () => {
     return () => {
       ToasterClass.registerToaster(undefined);
     };
-  }, []);
+  }, [setToasters]);
 
   return (
     <Portal>
