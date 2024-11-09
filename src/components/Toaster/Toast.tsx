@@ -2,11 +2,8 @@ import { CSSProperties, useEffect, useRef, useState } from 'react';
 // eslint-disable-next-line import/named
 import { Transition, TransitionStatus } from 'react-transition-group';
 import styles from './Toaster.module.scss';
-import { ToasterClass, ToasterItem } from './Toaster.tsx';
-
-const ANIMATION_DURATION = 200;
-
-const DEFAULT_TOASTER_TIMEOUT = 3_000;
+import { toaster, ToasterItem } from './Toaster.tsx';
+import { ANIMATION_DURATION, DEFAULT_TOASTER_TIMEOUT } from './constants.ts';
 
 const TOASTER_HEIGHT = 50;
 const TOASTER_GAP = 20;
@@ -56,7 +53,7 @@ export const Toast = ({ toast }: ToastProps) => {
   }, []);
 
   const onToastExited = (id: number) => {
-    ToasterClass.removeToast(id);
+    toaster.removeToast(id);
   };
 
   return (
