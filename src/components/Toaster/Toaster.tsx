@@ -5,7 +5,6 @@ import { Toast } from './Toast.tsx';
 import { ANIMATION_DURATION, DEFAULT_TOASTER_TIMEOUT } from './constants.ts';
 export interface ToasterItem {
   id: number;
-  position: number;
   message: string;
   timeout: number;
   type: 'success' | 'error' | 'info';
@@ -44,15 +43,9 @@ export class ToasterClass {
     duration: number = DEFAULT_TOASTER_TIMEOUT,
   ) {
     const id = Date.now();
-    const newToast: ToasterItem = { id, message, type, position: 0, timeout: duration };
+    const newToast: ToasterItem = { id, message, type, timeout: duration };
 
-    this.toasts = [
-      newToast,
-      ...this.toasts.map((toast, index) => ({
-        ...toast,
-        position: index + 1,
-      })),
-    ];
+    this.toasts = [newToast, ...this.toasts];
 
     this.notifyListeners();
 
@@ -61,11 +54,6 @@ export class ToasterClass {
 
   removeToast(id: number) {
     this.toasts = this.toasts.filter((toast) => toast.id !== id);
-
-    this.toasts = this.toasts.map((toast, index) => ({
-      ...toast,
-      position: index,
-    }));
 
     this.notifyListeners();
   }
@@ -87,8 +75,8 @@ export const Toaster = () => {
   return (
     <Portal>
       <div className={styles.toasterContainer}>
-        {toasters.map((toast) => (
-          <Toast key={toast.id} toast={toast}></Toast>
+        {toasters.map((toast, index) => (
+          <Toast key={toast.id} toast={toast} position={index}></Toast>
         ))}
       </div>
     </Portal>
