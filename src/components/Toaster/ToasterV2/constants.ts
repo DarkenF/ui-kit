@@ -1,0 +1,2 @@
+export const ANIMATION_DURATION = 1_000;
+export const DEFAULT_TOASTER_TIMEOUT = 3_000;

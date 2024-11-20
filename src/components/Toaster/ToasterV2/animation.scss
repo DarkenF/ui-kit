@@ -1,0 +1,28 @@
+.fade-leave-to,
+.fade-enter-from {
+  transform: translateX(200px);
+  opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 500ms ease, transform 500ms ease;
+}
+
+.fade-leave-active {
+  /*
+    note that we add absolute position to leaving element
+    so other elements change their position and trigger move transition
+  */
+  position: absolute;
+}
+
+.fade-leave-from,
+.fade-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.fade-move {
+  transition: transform 500ms ease;
+}
